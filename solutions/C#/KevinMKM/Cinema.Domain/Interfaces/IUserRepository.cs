@@ -1,6 +1,11 @@
+using Cinema.Domain.Entities;
+
 namespace Cinema.Domain.Interfaces;
 
 public interface IUserRepository
 {
-    User? GetByUsername(string user);
+    Task<User?> GetByUsernameAsync(string username);
+    Task<User?> GetByIdAsync(Guid id);
+    Task AddAsync(User user);
+    Task UpdateAsync(User user);
 }

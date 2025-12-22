@@ -2,12 +2,17 @@ using Microsoft.AspNetCore.Authorization;
 
 namespace Cinema.Api.Authorization;
 
-public sealed class ScopeHandler : AuthorizationHandler<ScopeRequirement>
+public class RequireScopeHandler : AuthorizationHandler<RequireScopeRequirement>
 {
-    protected override Task HandleRequirementAsync(AuthorizationHandlerContext context, ScopeRequirement requirement)
+    protected override Task HandleRequirementAsync(
+        AuthorizationHandlerContext context,
+        RequireScopeRequirement requirement)
     {
-        var scopeClaim = context.User.FindFirst("scope")?.Value;
-        if (scopeClaim?.Split(' ').Contains(requirement.Scope) == true)
+        var scopes = context.User.Claims
+            .Where(c => c.Type == "scope")
+            .Select(c => c.Value);
+
+        if (scopes.Contains(requirement.Scope))
             context.Succeed(requirement);
 
         return Task.CompletedTask;

@@ -1,31 +1,23 @@
-using Cinema.Api.Dtos;
-using Cinema.Domain.Interfaces;
+using Cinema.Application.Dtos;
+using Cinema.Application.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Cinema.Api.Controllers;
 
 [ApiController]
-[Route("api/auth")]
+[Route("api/[controller]")]
 public class AuthController : ControllerBase
 {
-    private readonly IUserRepository _users;
-    private readonly IPasswordHasher _hasher;
-    private readonly IJwtTokenService _jwt;
+    private readonly ILoginUseCase _loginUseCase;
 
-    public AuthController(IUserRepository users, IPasswordHasher hasher, IJwtTokenService jwt)
-    {
-        _users = users;
-        _hasher = hasher;
-        _jwt = jwt;
-    }
+    public AuthController(ILoginUseCase loginUseCase) => _loginUseCase = loginUseCase;
 
     [HttpPost("login")]
-    public IActionResult Login(LoginDto dto)
+    public async Task<ActionResult<LoginResponse>> Login([FromBody] LoginRequest request)
     {
-        var user = _users.GetByUsername(dto.Username);
-        if (user == null || !_hasher.Verify(dto.Password, user.PasswordHash))
-            return Unauthorized();
-
-        return Ok(new { accessToken = _jwt.GenerateToken(user), tokenType = "Bearer" });
+        var result = await _loginUseCase.ExecuteAsync(request);
+        return result.Data is not null
+            ? Ok(result.Data)
+            : Unauthorized(new { error = result.Error });
     }
 }

@@ -1,13 +1,19 @@
+using Cinema.Application.Dtos;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Cinema.Api.Controllers;
 
 [ApiController]
-[Route("api/tickets")]
+[Route("api/[controller]")]
+[Authorize] // Base authentication
 public class TicketsController : ControllerBase
 {
-    [Authorize(Policy = "ReserveTicket")]
+    // ? SCOPE-BASED AUTHORIZATION - Critical requirement
     [HttpPost("reserve")]
-    public IActionResult Reserve() => Ok(new { status = "Reserved" });
+    [Authorize(Policy = "RequireScope:ticket:reserve")]
+    public IActionResult ReserveTicket([FromBody] ReserveTicketRequest request)
+    {
+        return Ok(new ReserveTicketResponse(Guid.NewGuid(), "Ticket reserved successfully"));
+    }
 }
